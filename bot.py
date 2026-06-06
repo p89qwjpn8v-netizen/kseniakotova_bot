@@ -3,10 +3,7 @@ import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO
-)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 TOKEN = os.environ.get("BOT_TOKEN")
@@ -16,54 +13,54 @@ SMALL_TALK_LINK = "https://chatgpt.com/g/g-68a718abfcbc819189ee9688df7c0721-smal
 
 QUESTIONS = [
     {
-        "text": "В1. Когда вы говорите по-английски в важный момент, что происходит чаще?",
+        "text": "1. Когда говорите по-английски в важный момент, что происходит чаще?",
         "options": [
-            ("A. Знаю, что хочу сказать, но собираю фразу медленно, через русский", "T1"),
-            ("B. В голове пусто и тело напрягается, хотя в быту такого нет", "T2"),
-            ("C. Практикую редко, график не оставляет места", "T3"),
-            ("D. Говорю, но с паузами и шероховато, не как на русском", "T4"),
+            ("A. Знаю что сказать, но собираю фразу медленно", "T1"),
+            ("B. В голове пусто, я напрягаюсь, в быту такого нет", "T2"),
+            ("C. Практикую редко, нет места в графике", "T3"),
+            ("D. Говорю, но с паузами, не как на русском", "T4"),
         ]
     },
     {
-        "text": "В2. Где английский подводит сильнее всего?",
+        "text": "2. Где английский подводит сильнее всего?",
         "options": [
             ("A. В быстром диалоге, не успеваю за темпом", "T1"),
-            ("B. На интервью, питче, переговорах — там, где на кону результат", "T2"),
-            ("C. Везде понемногу, потому что занятия нерегулярны", "T3"),
-            ("D. Уже почти везде ок, но не хватает гладкости и уверенности", "T4"),
+            ("B. На интервью, питче, переговорах", "T2"),
+            ("C. Везде понемногу, занятия нерегулярны", "T3"),
+            ("D. Почти везде ок, но нет беглости", "T4"),
         ]
     },
     {
-        "text": "В3. Какая мысль о себе ближе?",
+        "text": "3. Какая мысль о себе ближе?",
         "options": [
-            ("A. «Понимаю больше, чем говорю»", "T1"),
-            ("B. «В ответственный момент рассыпаюсь и звучу слабее, чем я есть»", "T2"),
-            ("C. «Нет времени учить язык как отдельный проект»", "T3"),
-            ("D. «На английском я будто упрощённая версия себя»", "T4"),
+            ("A. Понимаю больше, чем говорю", "T1"),
+            ("B. В ответственный момент рассыпаюсь", "T2"),
+            ("C. Нет времени учить язык как проект", "T3"),
+            ("D. На английском я — упрощённая версия себя", "T4"),
         ]
     },
     {
-        "text": "В4. Что мешает сильнее всего?",
+        "text": "4. Что мешает сильнее всего?",
         "options": [
             ("A. Постоянный перевод в голове, нет автоматизма", "T1"),
-            ("B. Страх ошибиться и прозвучать слабее своей экспертизы", "T2"),
-            ("C. Завал на работе и страх снова всё бросить", "T3"),
-            ("D. Упёрся в потолок, вроде неплохо, но дальше не двигается", "T4"),
+            ("B. Страх прозвучать слабее своей экспертизы", "T2"),
+            ("C. Завал на работе и страх снова бросить", "T3"),
+            ("D. Упёрся в потолок, дальше не двигается", "T4"),
         ]
     },
     {
-        "text": "В5. Что было бы лучшим результатом через 90 дней?",
+        "text": "5. Лучший результат через 90 дней?",
         "options": [
-            ("A. Говорить без паузы, не переводя в голове", "T1"),
-            ("B. Держаться уверенно в интервью и переговорах", "T2"),
-            ("C. Английский встроен в график без «второй работы»", "T3"),
-            ("D. Звучать бегло, естественно и как я сам(а)", "T4"),
+            ("A. Говорить без задержки, не переводя в голове", "T1"),
+            ("B. Уверенно держаться в интервью и переговорах", "T2"),
+            ("C. Английский встроен в график без усилий", "T3"),
+            ("D. Звучать бегло и естественно, как я сам(а)", "T4"),
         ]
     },
     {
-        "text": "В6. Есть ли впереди конкретное событие или дедлайн?",
+        "text": "6. Есть ли впереди конкретное событие или дедлайн?",
         "options": [
-            ("A. Да, скоро важное: интервью, переезд, сделка", "intens"),
+            ("A. Да, интервью/ презентация или важная сделка", "intens"),
             ("B. Нет дедлайна, хочу системно", "strat"),
             ("C. Пока хочу понять, что вообще делать", "diag"),
         ]
@@ -73,7 +70,7 @@ QUESTIONS = [
 RESULTS = {
     "T1": (
         "💡 Ваш тип: «Думаю на русском — говорю с задержкой»\n\n"
-        "У вас не ноль языка, а разрыв между пассивом и живой реакцией. "
+        "У вас не ноль языка, у вас разрыв между пассивом и живой реакцией. "
         "Вы понимаете и читаете, но фраза собирается через русский, и пока вы её переводите, "
         "разговор уже ушёл вперёд. Дело не в количестве слов — слова и так есть, не хватает автоматизма. "
         "В лингвокоучинге мы не «доучиваем язык вообще», а точечно перестраиваем речевую опору "
@@ -98,7 +95,7 @@ RESULTS = {
     "T4": (
         "💡 Ваш тип: «Говорю, но звучу не как я»\n\n"
         "Вы уже неплохо говорите и именно поэтому застряли: базовые курсы вам ничего нового не дают, "
-        "а беглости и уверенности всё равно нет. Паузы, шероховатости, ощущение упрощённой версии себя. "
+        "а гладкости и уверенности всё равно нет. Паузы, шероховатости, ощущение упрощённой версии себя. "
         "Это не «учить заново», это отполировать под ваши реальные ситуации, чтобы на английском "
         "вы звучали как вы. С этого и начинается лингвокоучинг — с диагностики того, что именно вас тормозит. "
         "Первый шаг — вводная консультация."
@@ -107,13 +104,13 @@ RESULTS = {
 
 CTA_TEXT = (
     "\n\n—\n"
-    "Это короткая диагностика показывает направление. "
+    "Это короткая диагностик показывает направление. "
     "Полную картину, а именно вашу точку А, точку Б и тот самый мостик, которого не хватает — "
     "собираем на вводной консультации (40 минут)."
 )
 
 
-async def is_subscribed(user_id: int, context: ContextTypes.DEFAULT_TYPE) -> bool:
+async def is_subscribed(user_id, context):
     try:
         member = await context.bot.get_chat_member(CHANNEL, user_id)
         return member.status in ("member", "administrator", "creator")
@@ -121,14 +118,14 @@ async def is_subscribed(user_id: int, context: ContextTypes.DEFAULT_TYPE) -> boo
         return False
 
 
-def subscribe_keyboard(after_action: str):
+def subscribe_keyboard(after_action):
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("📲 Подписаться на канал", url="https://t.me/lingvopodcasts")],
         [InlineKeyboardButton("✅ Я подписался(ась)", callback_data=f"check_{after_action}")]
     ])
 
 
-def question_keyboard(q_index: int):
+def question_keyboard(q_index):
     q = QUESTIONS[q_index]
     buttons = []
     for i, (text, _) in enumerate(q["options"]):
@@ -139,18 +136,16 @@ def question_keyboard(q_index: int):
 
 async def send_content(message, context, keyword):
     if keyword == "СМОЛ-ТОК":
-        await message.reply_text(
-            f"🎙 Вот ваш GPT-агент для смол-тока на английском — уверенно и живо:\n\n{SMALL_TALK_LINK}"
-        )
+        await message.reply_text(f"🎙 Вот ваш GPT-агент для смол-тока на английском:\n\n{SMALL_TALK_LINK}")
     elif keyword == "ПРОМТЫ":
         await message.reply_document(
             document=open("files/prompty.pdf", "rb"),
-            caption="🧠 50 промптов, чтобы стать своим в UK и других англоязычных странах. Практикуйте и делитесь результатами! 🇬🇧"
+            caption="🧠 50 промптов, чтобы стать своим в UK. Практикуйте и делитесь результатами! 🇬🇧"
         )
     elif keyword == "ГОВОРЮ":
         await message.reply_document(
             document=open("files/frazy.pdf", "rb"),
-            caption="💬 120+ фраз для общения с носителями английского языка — естественно и уверенно! 🇬🇧"
+            caption="💬 120+ фраз для общения с носителями — естественно и уверенно! 🇬🇧"
         )
 
 
@@ -158,27 +153,17 @@ async def start_quiz(message, context):
     context.user_data["scores"] = {"T1": 0, "T2": 0, "T3": 0, "T4": 0}
     context.user_data["q6_label"] = None
     await message.reply_text(
-        "Отлично! 6 коротких вопросов — отвечайте быстро, "
+        "Отлично! 6 коротких вопросов — отвечайте по первому ощущению, "
         "тут нет правильных и неправильных. Поехали 👇",
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("Начать", callback_data="quiz_start")]
-        ])
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Начать", callback_data="quiz_start")]])
     )
 
 
 async def show_result(message, context):
     scores = context.user_data.get("scores", {"T1": 0, "T2": 0, "T3": 0, "T4": 0})
-
-    # T2 побеждает при равенстве баллов
     max_score = max(scores.values())
-    if scores["T2"] == max_score:
-        dominant = "T2"
-    else:
-        dominant = max(scores, key=lambda t: scores[t])
-
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("📅 Записаться на консультацию", url=CONSULTATION_LINK)]
-    ])
+    dominant = "T2" if scores["T2"] == max_score else max(scores, key=lambda t: scores[t])
+    keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("📅 Записаться на консультацию", url=CONSULTATION_LINK)]])
     await message.reply_text(RESULTS[dominant] + CTA_TEXT, reply_markup=keyboard)
 
 
@@ -192,19 +177,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await update.message.reply_text(
                 "Материал почти у вас! 🎁\n\n"
-                "Для получения подпишитесь на мой канал — там я делюсь практикой, "
-                "разборами и лайфхаками для уверенного английского.\n\n"
+                "Подпишитесь на канал — там практика, разборы и лайфхаки для уверенного английского.\n\n"
                 "После подписки нажмите кнопку ниже 👇",
                 reply_markup=subscribe_keyboard(text)
             )
-
     elif text == "ТЕСТ":
         if await is_subscribed(user_id, context):
             await start_quiz(update.message, context)
         else:
             await update.message.reply_text(
-                "Здравствуйте! Это короткий тест: за 2 минуты покажу, где именно застревает "
-                "ваш английский и что с этим делать.\n\n"
+                "Привет! За 2 минуты покажу, где именно застревает ваш английский — и что с этим делать.\n\n"
                 "Тест откроется сразу после подписки на канал 👇",
                 reply_markup=subscribe_keyboard("ТЕСТ")
             )
@@ -216,7 +198,6 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data
     user_id = query.from_user.id
 
-    # Проверка подписки
     if data.startswith("check_"):
         action = data.replace("check_", "")
         if await is_subscribed(user_id, context):
@@ -227,36 +208,24 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await query.message.reply_text("✅ Отлично, вы подписаны! Вот ваш материал:")
                 await send_content(query.message, context, action)
         else:
-            await query.answer(
-                "Подписка не найдена. Подпишитесь и нажмите кнопку снова 👇",
-                show_alert=True
-            )
+            await query.answer("Подписка не найдена. Подпишитесь и нажмите кнопку снова 👇", show_alert=True)
 
-    # Старт квиза
     elif data == "quiz_start":
-        await query.message.reply_text(
-            QUESTIONS[0]["text"],
-            reply_markup=question_keyboard(0)
-        )
+        await query.message.reply_text(QUESTIONS[0]["text"], reply_markup=question_keyboard(0))
 
-    # Ответы на вопросы: q{index}_{letter}
     elif len(data) >= 3 and data[0] == "q" and "_" in data:
         parts = data.split("_")
         q_index = int(parts[0][1:])
-        letter = parts[1]
-        letter_index = ord(letter) - 65
+        letter_index = ord(parts[1]) - 65
 
-        if q_index < 5:  # В1-В5: начисляем баллы
+        if q_index < 5:
             _, type_code = QUESTIONS[q_index]["options"][letter_index]
             if "scores" not in context.user_data:
                 context.user_data["scores"] = {"T1": 0, "T2": 0, "T3": 0, "T4": 0}
             context.user_data["scores"][type_code] += 1
             next_q = q_index + 1
-            await query.message.reply_text(
-                QUESTIONS[next_q]["text"],
-                reply_markup=question_keyboard(next_q)
-            )
-        else:  # В6: сохраняем метку, показываем результат
+            await query.message.reply_text(QUESTIONS[next_q]["text"], reply_markup=question_keyboard(next_q))
+        else:
             _, label = QUESTIONS[q_index]["options"][letter_index]
             context.user_data["q6_label"] = label
             await show_result(query.message, context)
