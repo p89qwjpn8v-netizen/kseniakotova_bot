@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 TOKEN = os.environ.get("BOT_TOKEN")
 CHANNEL = "@lingvopodcasts"
-CONSULTATION_LINK = "https://t.me/lingvopodcasts"
+CONSULTATION_LINK = "https://t.me/ksushakotova?text=ХОЧУ+НА+КОНСУЛЬТАЦИЮ"
 SMALL_TALK_LINK = "https://chatgpt.com/g/g-68a718abfcbc819189ee9688df7c0721-small-talk-na-angliiskom-uverenno-i-zhivo"
 
 QUESTIONS = [
