@@ -1,14 +1,14 @@
 import logging
 import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, MessageHandler, CallbackQueryHandler, filters, ContextTypes
+from telegram.ext import Application, MessageHandler, CommandHandler, CallbackQueryHandler, filters, ContextTypes
 
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 TOKEN = os.environ.get("BOT_TOKEN")
 CHANNEL = "@lingvopodcasts"
-CONSULTATION_LINK = "https://t.me/ksushakotova?text=ХОЧУ_НА_КОНСУЛЬТАЦИЮ"
+CONSULTATION_LINK = "https://t.me/ksushakotova?text=ХОЧУ+НА+КОНСУЛЬТАЦИЮ"
 SMALL_TALK_LINK = "https://chatgpt.com/g/g-68a718abfcbc819189ee9688df7c0721-small-talk-na-angliiskom-uverenno-i-zhivo"
 
 QUESTIONS = [
@@ -87,10 +87,6 @@ RESULTS = {
             "Вам не нужно учить ещё и ещё — нужно тренировать речевую реакцию "
             "под ваши реальные ситуации."
         ),
-        "more": (
-            "На вводной консультации посмотрим вашу точку А, точку Б и соберём языковое ТЗ: "
-            "что тренировать, в каком порядке и под какие ситуации."
-        ),
     },
     "T2": {
         "title": "Ваш затык: стресс в значимых ситуациях",
@@ -102,10 +98,6 @@ RESULTS = {
             "Тут нужна не общая подготовка, а под конкретную ситуацию: что сказать, как ответить, "
             "как уточнить, как не потеряться."
         ),
-        "more": (
-            "На вводной консультации разложим вашу ситуацию на навыки: что нужно понимать, говорить, "
-            "уточнять, отвечать и выдерживать в моменте — и после этого будет понятен маршрут подготовки."
-        ),
     },
     "T3": {
         "title": "Ваш затык: нет системы",
@@ -115,10 +107,6 @@ RESULTS = {
             "но без понятного маршрута прогресс быстро размывается.\n\n"
             "Здесь нужно языковое ТЗ: цель, ситуации, план и понятные шаги на 90 дней."
         ),
-        "more": (
-            "На вводной консультации соберём вашу точку А, точку Б и поймём, какой формат подойдёт: "
-            "стратегия, интенсив или регулярная работа."
-        ),
     },
     "T4": {
         "title": "Ваш затык: говорю не как я",
@@ -127,10 +115,6 @@ RESULTS = {
             "чем на русском. Из-за этого теряется ваш обычный уровень: точность, харизма, "
             "профессиональный вес.\n\n"
             "Цель — настроить речь под ваши реальные ситуации: встречи, клиентов, интервью, переговоры."
-        ),
-        "more": (
-            "На вводной консультации посмотрим, где именно теряется ваше звучание: скорость, лексика, "
-            "структура мысли, уверенность или спонтанность — и соберём ТЗ под вашу задачу."
         ),
     },
 }
@@ -200,9 +184,7 @@ async def show_result(message, context):
 
     result = RESULTS[dominant]
 
-    # Фото 2 — мягкое, перед результатом
     await message.reply_photo(photo=open("files/photo2.jpg", "rb"))
-
     await message.reply_text(
         f"Готово. Сейчас покажу, где английский тормозит сильнее всего.\n\n"
         f"💡 {result['title']}\n\n{result['text']}",
@@ -210,6 +192,21 @@ async def show_result(message, context):
             [InlineKeyboardButton("Что с этим делать?", callback_data=f"more_{dominant}")]
         ])
     )
+
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    await update.message.reply_photo(photo=open("files/photo1.jpg", "rb"))
+
+    if await is_subscribed(user_id, context):
+        await start_quiz(update.message, context)
+    else:
+        await update.message.reply_text(
+            "Здравствуйте! Это короткий тест-диагностика. "
+            "За 2 минуты покажу, где именно застревает ваш английский.\n\n"
+            "Тест откроется после подписки на канал.",
+            reply_markup=subscribe_keyboard("quiz")
+        )
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -227,20 +224,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=subscribe_keyboard(text)
             )
 
-    elif text == "ТЕСТ":
-        # Фото 1 — экспертный вайб, приветствие
-        await update.message.reply_photo(photo=open("files/photo1.jpg", "rb"))
-
-        if await is_subscribed(user_id, context):
-            await start_quiz(update.message, context)
-        else:
-            await update.message.reply_text(
-                "Здравствуйте! Это короткий тест-диагностика. "
-                "За 2 минуты покажу, где именно застревает ваш английский.\n\n"
-                "Тест откроется после подписки на канал.",
-                reply_markup=subscribe_keyboard("ТЕСТ")
-            )
-
 
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -252,7 +235,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data.startswith("check_"):
         action = data.replace("check_", "")
         if await is_subscribed(user_id, context):
-            if action == "ТЕСТ":
+            if action == "quiz":
                 await query.message.reply_text("✅ Отлично, вы подписаны! Начинаем тест.")
                 await start_quiz(query.message, context)
             else:
@@ -270,14 +253,9 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Кнопка "Что с этим делать?"
     elif data.startswith("more_"):
-        dominant = data.replace("more_", "")
-        result = RESULTS[dominant]
-
-        # Фото 3 — экспертное, с заметками, перед записью
         await query.message.reply_photo(photo=open("files/photo3.jpg", "rb"))
-
         await query.message.reply_text(
-            f"{result['more']}\n\n{CTA_TEXT}",
+            CTA_TEXT,
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("Хочу записаться на вводную консультацию", url=CONSULTATION_LINK)]
             ])
@@ -310,6 +288,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     app = Application.builder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_handler(CallbackQueryHandler(handle_callback))
     logger.info("Бот запущен...")
